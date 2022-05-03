@@ -21,8 +21,8 @@ class Information(commands.Cog):
         if ctx.invoked_subcommand is None:
             await ctx.send('You must provide a valid subcommand.')
 
-    @voice.command(description='Displays the amount of voice time a user has spent in this guild.')
-    async def time(self, ctx, user: typing.Optional[discord.Member] = None):
+    @voice.command(name='time', description='Displays the amount of voice time a user has spent in this guild.')
+    async def voice_time(self, ctx, user: typing.Optional[discord.Member] = None):
         if user is None:
             user = ctx.author
 
@@ -52,8 +52,8 @@ class Information(commands.Cog):
             ret += f' {s}s'
         await ctx.send(f'{ret} in voice channels.')
 
-    @voice.command(description='Displays the voice time rankings in this guild.')
-    async def top(self, ctx):
+    @voice.command(name='top', description='Displays the voice time rankings in this guild.')
+    async def voice_top(self, ctx):
         data = await self.bot.db.get_top_voice_times(ctx.guild.id)
         if not data:
             await ctx.send('No voice time has been recorded in this guild.')

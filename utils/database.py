@@ -71,8 +71,8 @@ class DBConnection(BaseDBConnection):
 
         return await self.conn.fetchrow(query, guild_id)
 
-    async def update_guild_value(self, guild_id: int, data: dict):
-        """Update guild value"""
+    async def update_guild(self, guild_id: int, data: dict):
+        """Update guild"""
         if not self.is_connected:
             await self.connect()
 
@@ -97,8 +97,6 @@ class DBConnection(BaseDBConnection):
 
         if self.guild_cache.get(guild_id):
             self.guild_cache[guild_id].update(data)
-        else:
-            self.guild_cache[guild_id] = data
 
     async def new_guild(self, guild_id: int):
         """New guild in database"""

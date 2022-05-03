@@ -10,7 +10,7 @@ class LogEvents(commands.Cog):
     TODO:
         - join, leave
         - message delete, message update
-        - reaction add, reaction remove
+        - reaction add, reaction remove (rolemenu)
     """
 
     @commands.Cog.listener()
