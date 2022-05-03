@@ -4,6 +4,7 @@ import os
 
 from discord.ext import commands
 from utils.database import DBConnection
+from utils.utils import aloc
 
 logger = logging.getLogger('zote')
 logger.setLevel(logging.DEBUG)
@@ -18,7 +19,6 @@ class ZoteBot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db = DBConnection()
-        self.db_cache_guild = {}
 
     async def close(self):
         if self.db.is_connected:
@@ -41,5 +41,6 @@ for filename in os.listdir('cogs'):
 @bot.event
 async def on_ready():
     logger.debug(f'Logged in as {bot.user} ({bot.user.id})')
+    logger.debug(f'All lines of code: {aloc()}')
 
 bot.run(os.environ.get('ZOTE_DISCORD_TOKEN', 'abcdefg1234567'))

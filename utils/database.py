@@ -41,9 +41,9 @@ class DBConnection(BaseDBConnection):
     def __init__(self):
         super().__init__('192.168.0.129', 'wynndb', 'zote')
         self.guild_cache = {}
+
         logger = logging.getLogger('zote.database')
         logger.setLevel(logging.DEBUG)
-
         handler = logging.StreamHandler()
         formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         handler.setFormatter(formatter)
