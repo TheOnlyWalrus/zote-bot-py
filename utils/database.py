@@ -14,19 +14,26 @@ class DBException(Exception):
 
 class BaseDBConnection:
     def __init__(self, host, db_name, user):
+        self.pool: typing.Optional[asyncpg.pool.Pool] = None
         self.host = host
         self.db_name = db_name
         self.user = user
 
-    async def create_conn(self):
-        conn = await asyncpg.connect(
+    async def connect(self):
+        self.pool = await asyncpg.create_pool(
             user=self.user,
             password=os.environ.get('ZOTE_DB_PASSWORD'),
             database=self.db_name,
             host=self.host
         )
 
-        return conn
+    async def close(self):
+        if self.pool:
+            await self.pool.close()
+
+    @property
+    def is_connected(self):
+        return self.pool is not None
 
 
 class DBConnection(BaseDBConnection):
@@ -46,15 +53,15 @@ class DBConnection(BaseDBConnection):
 
     async def get_guild(self, guild_id: int) -> typing.Optional[asyncpg.Record]:
         """Get guild by id"""
-        conn = await self.create_conn()
+        if not self.is_connected:
+            await self.connect()
 
         if e := self.guild_cache.get(guild_id):
             return e
 
-        query = 'SELECT * FROM zotebot.guilds WHERE id = $1'
-
-        res = await conn.fetchrow(query, guild_id)
-        await conn.close()
+        async with self.pool.acquire() as conn:
+            query = 'SELECT * FROM zotebot.guilds WHERE id = $1'
+            res = await conn.fetchrow(query, guild_id)
 
         if res:
             res = dict(res)
@@ -65,7 +72,8 @@ class DBConnection(BaseDBConnection):
 
     async def update_guild(self, guild_id: int, data: dict):
         """Update guild"""
-        conn = await self.create_conn()
+        if not self.is_connected:
+            await self.connect()
 
         d = ''
         n = 2
@@ -78,30 +86,31 @@ class DBConnection(BaseDBConnection):
             values.append(value)
             n += 1
 
-        query = '''
-        UPDATE zotebot.guilds
-            SET {}
-            WHERE id = $1
-        '''.format(d[:-2])
+        async with self.pool.acquire() as conn:
+            query = '''
+            UPDATE zotebot.guilds
+                SET {}
+                WHERE id = $1
+            '''.format(d[:-2])
 
-        await conn.execute(query, guild_id, *values)
-        await conn.close()
+            await conn.execute(query, guild_id, *values)
 
         if self.guild_cache.get(guild_id):
             self.guild_cache[guild_id].update(data)
 
     async def new_guild(self, guild_id: int):
         """New guild in database"""
-        conn = await self.create_conn()
+        if not self.is_connected:
+            await self.connect()
 
-        query = '''
-        INSERT INTO zotebot.guilds (id)
-            VALUES ($1)
-        '''
+        async with self.pool.acquire() as conn:
+            query = '''
+            INSERT INTO zotebot.guilds (id)
+                VALUES ($1)
+            '''
 
-        await conn.execute(
-            query, guild_id)
-        await conn.close()
+            await conn.execute(
+                query, guild_id)
 
     def clear_cache(self):
         """Clear cache"""
@@ -111,12 +120,13 @@ class DBConnection(BaseDBConnection):
 
     async def get_user(self, user_id: int) -> typing.Optional[dict]:
         """Get user by id"""
-        conn = await self.create_conn()
+        if not self.is_connected:
+            await self.connect()
 
-        query = 'SELECT * FROM zotebot.users WHERE id = $1'
+        async with self.pool.acquire() as conn:
+            query = 'SELECT * FROM zotebot.users WHERE id = $1'
 
-        res = await conn.fetchrow(query, user_id)
-        await conn.close()
+            res = await conn.fetchrow(query, user_id)
 
         if res:
             res = dict(res)
@@ -126,7 +136,8 @@ class DBConnection(BaseDBConnection):
 
     async def update_user(self, user_id: int, data: dict):
         """Update user value"""
-        conn = await self.create_conn()
+        if not self.is_connected:
+            await self.connect()
 
         d = ''
         n = 2
@@ -139,40 +150,42 @@ class DBConnection(BaseDBConnection):
             values.append(value)
             n += 1
 
-        query = '''
-        UPDATE zotebot.users
-            SET {}
-            WHERE id = $1
-        '''.format(d[:-2])
+        async with self.pool.acquire() as conn:
+            query = '''
+            UPDATE zotebot.users
+                SET {}
+                WHERE id = $1
+            '''.format(d[:-2])
 
-        await conn.execute(query, user_id, *values)
-        await conn.close()
+            await conn.execute(query, user_id, *values)
 
     async def new_user(self, user_id: int):
         """Set user in database"""
-        conn = await self.create_conn()
+        if not self.is_connected:
+            await self.connect()
 
-        query = '''
-        INSERT INTO zotebot.users
-            VALUES ($1)
-        '''
+        async with self.pool.acquire() as conn:
+            query = '''
+            INSERT INTO zotebot.users
+                VALUES ($1)
+            '''
 
-        await conn.execute(
-            query, user_id)
-        await conn.close()
+            await conn.execute(
+                query, user_id)
 
     async def get_top_voice_times(self, guild_id: int, limit: int = 10) -> typing.List[typing.Tuple[int, int]]:
         """Get top voice times"""
-        conn = await self.create_conn()
+        if not self.is_connected:
+            await self.connect()
 
-        query = '''
-            SELECT id, voice FROM zotebot.users
-        '''
+        async with self.pool.acquire() as conn:
+            query = '''
+                SELECT id, voice FROM zotebot.users
+            '''
+
+            res = await conn.fetch(query)
 
         guild_users = []
-
-        res = await conn.fetch(query)
-        await conn.close()
 
         for x in res:
             v = json.loads(x['voice'])
