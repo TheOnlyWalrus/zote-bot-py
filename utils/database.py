@@ -30,6 +30,7 @@ class BaseDBConnection:
     async def close(self):
         if self.pool:
             await self.pool.close()
+            self.pool = None
 
     @property
     def is_connected(self):

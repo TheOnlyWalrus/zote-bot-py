@@ -13,10 +13,22 @@ formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s',
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-bot = commands.Bot(command_prefix='!>', intents=discord.Intents.all())  # TODO: Change prefix back to > when done testing
-db = DBConnection()
-bot.db = db
-bot.db_cache_guild = {}
+
+class ZoteBot(commands.AutoShardedBot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.db = DBConnection()
+        self.db_cache_guild = {}
+
+    async def close(self):
+        if self.db.is_connected:
+            await self.db.close()
+
+        await super().close()
+
+
+bot = ZoteBot(command_prefix='!>', intents=discord.Intents.all())  # TODO: Change prefix back to > when done testing
+
 
 for filename in os.listdir('cogs'):
     if filename.endswith('.py'):
