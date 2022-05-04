@@ -6,7 +6,10 @@ from discord.ext import commands
 from utils.database import DBConnection
 from utils.utils import aloc
 
-logger = logging.getLogger('zote')
+logger = logging.getLogger(
+    'zote' if os.environ.get('DEBUG', 0) == 1
+    else 'purple'
+)
 logger.setLevel(logging.DEBUG)
 
 handler = logging.StreamHandler()
@@ -27,7 +30,7 @@ class ZoteBot(commands.AutoShardedBot):
         await super().close()
 
 
-bot = ZoteBot(command_prefix='!>', intents=discord.Intents.all())  # TODO: Change prefix back to > when done testing
+bot = ZoteBot(command_prefix='>', intents=discord.Intents.all())  # TODO: Change prefix back to > when done testing
 
 
 for filename in os.listdir('cogs'):
@@ -43,4 +46,7 @@ async def on_ready():
     logger.debug(f'Logged in as {bot.user} ({bot.user.id})')
     logger.debug(f'All lines of code: {aloc()}')
 
-bot.run(os.environ.get('ZOTE_DISCORD_TOKEN', 'abcdefg1234567'))
+bot.run(
+    os.environ.get('ZOTE_DISCORD_TOKEN', 'abcdefg1234567') if os.environ.get('DEBUG', 0) == 0
+    else os.environ.get('PURPLE_DISCORD_TOKEN', 'abcdefg1234567')
+)

@@ -4,17 +4,18 @@ import typing
 from discord.ext import commands
 
 
+def convert_time(ms):
+    s, ms = divmod(ms, 1000)
+    m, s = divmod(s, 60)
+    h, m = divmod(m, 60)
+    d, h = divmod(h, 24)
+
+    return int(d), int(h), int(m), int(s), int(ms)
+
+
 class Information(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-    def convert_time(self, ms):
-        s, ms = divmod(ms, 1000)
-        m, s = divmod(s, 60)
-        h, m = divmod(m, 60)
-        d, h = divmod(h, 24)
-
-        return int(d), int(h), int(m), int(s), int(ms)
 
     @commands.group()
     async def voice(self, ctx):
@@ -39,7 +40,7 @@ class Information(commands.Cog):
             await ctx.send(f'{user} has no voice time recorded.')
             return
 
-        d, h, m, s, _ = self.convert_time(vt)
+        d, h, m, s, _ = convert_time(vt)
 
         ret = f'{user} has spent'
         if d > 0:
@@ -50,9 +51,10 @@ class Information(commands.Cog):
             ret += f' {m}m'
         if s > 0:
             ret += f' {s}s'
+
         await ctx.send(f'{ret} in voice channels.')
 
-    @voice.command(name='top', description='Displays the voice time rankings in this guild.')
+    @voice.command(name='top', description='Displays the top 10 voice time rankings in this guild.')
     async def voice_top(self, ctx):
         data = await self.bot.db.get_top_voice_times(ctx.guild.id)
         if not data:
@@ -66,7 +68,7 @@ class Information(commands.Cog):
             if user is None:
                 user = 'Unknown#0000'
 
-            d, h, m, s, _ = self.convert_time(voice['voice_time_spent_ms'])
+            d, h, m, s, _ = convert_time(voice['voice_time_spent_ms'])
             ret += f'{i + 1}. {user} -'
             if d > 0:
                 ret += f' {d}d'

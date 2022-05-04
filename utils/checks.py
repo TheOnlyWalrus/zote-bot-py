@@ -13,8 +13,17 @@ def access_level(min_level: int):
         user = await ctx.bot.db.get_user(ctx.author.id)
         if not user:
             await ctx.bot.db.new_user(ctx.author.id)
-            return 0 >= min_level
+            return AccessLevel.USER >= min_level
 
         return user['access_level'] >= min_level
 
     return commands.check(check)
+
+
+async def access_level_cog(ctx, min_level: int):
+    user = await ctx.bot.db.get_user(ctx.author.id)
+    if not user:
+        await ctx.bot.db.new_user(ctx.author.id)
+        return AccessLevel.USER >= min_level
+
+    return user['access_level'] >= min_level

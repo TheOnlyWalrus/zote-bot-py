@@ -209,7 +209,7 @@ class DBConnection(BaseDBConnection):
             tz = v.get('timezone', 'UTC')
         else:
             tz = 'UTC'
-        
+
         now = datetime.now(pytz.timezone(tz))
         offset = now.strftime('%z')
         sign = offset[0]
