@@ -7,7 +7,7 @@ from utils.database import DBConnection
 from utils.utils import aloc
 
 logger = logging.getLogger(
-    'zote' if os.environ.get('DEBUG', 0) == 1
+    'zote' if os.environ.get('DEBUG', "0") == "0"
     else 'purple'
 )
 logger.setLevel(logging.DEBUG)
@@ -47,6 +47,6 @@ async def on_ready():
     logger.debug(f'All lines of code: {aloc()}')
 
 bot.run(
-    os.environ.get('ZOTE_DISCORD_TOKEN', 'abcdefg1234567') if os.environ.get('DEBUG', 0) == 0
+    os.environ.get('ZOTE_DISCORD_TOKEN', 'abcdefg1234567') if os.environ.get('DEBUG', "0") == "0"
     else os.environ.get('PURPLE_DISCORD_TOKEN', 'abcdefg1234567')
 )
