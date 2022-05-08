@@ -200,8 +200,9 @@ class LogEvents(commands.Cog):
             else:
                 await self.bot.db.new_user(member.id)
         elif before.channel and after.channel:  # Moved to another channel
-            await self.send_log(member.guild, f'☎️ {member} (`{member.id}`)'
-                                f' moved from **#{before.channel.name}** to **#{after.channel.name}**')
+            if before.channel != after.channel:
+                await self.send_log(member.guild, f'☎️ {member} (`{member.id}`)'
+                                    f' moved from **#{before.channel.name}** to **#{after.channel.name}**')
 
 
 def setup(bot):
