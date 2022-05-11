@@ -20,6 +20,9 @@ class BaseDBConnection:
         self.user = user
 
     async def connect(self):
+        if self.pool:
+            raise DBException(f'Connection pool for database {self.db_name} already established.')
+
         self.pool = await asyncpg.create_pool(
             user=self.user,
             password=os.environ.get('ZOTE_DB_PASSWORD'),
@@ -28,9 +31,11 @@ class BaseDBConnection:
         )
 
     async def close(self):
-        if self.pool:
-            await self.pool.close()
-            self.pool = None
+        if not self.pool:
+            raise DBException(f'Connection to database {self.db_name} does not exist.')
+
+        await self.pool.close()
+        self.pool = None
 
     @property
     def is_connected(self):
@@ -52,7 +57,7 @@ class DBConnection(BaseDBConnection):
 
     # Guilds
 
-    async def get_guild(self, guild_id: int) -> typing.Optional[asyncpg.Record]:
+    async def get_guild(self, guild_id: int) -> typing.Optional[dict]:
         """Get guild by id"""
         if not self.is_connected:
             await self.connect()
@@ -156,7 +161,7 @@ class DBConnection(BaseDBConnection):
             UPDATE zotebot.users
                 SET {}
                 WHERE id = $1
-            '''.format(d[:-2])
+            '''.format(d[:-2])  # remove last comma and space
 
             await conn.execute(query, user_id, *values)
 
