@@ -58,6 +58,29 @@ class Settings(commands.Cog):
         await ctx.bot.db.update_guild(ctx.guild.id, {'timezone': timezone})
         await ctx.send(f'Timezone set to {timezone}')
 
+    @config.command(name='afk', description='Set the AFK voice channel.')
+    async def config_afk(self, ctx, *, afk_channel: typing.Optional[discord.VoiceChannel] = None):
+        guild = await ctx.bot.db.get_guild(ctx.guild.id)
+
+        if not guild:
+            await ctx.bot.db.new_guild(ctx.guild.id)
+            guild = await ctx.bot.db.get_guild(ctx.guild.id)
+
+        if afk_channel is None:
+            if guild.get('afk_channel', 0) == 0:
+                await ctx.send('No AFK channel set.')
+            else:
+                await ctx.send(f'AFK channel is set to <#{guild.get("afk_channel")}> ({guild.get("afk_channel")})')
+
+            return
+
+        if not afk_channel.permissions_for(ctx.me).send_messages:
+            await ctx.send('I do not have permission to send messages in that channel.')
+            return
+
+        await ctx.bot.db.update_guild(ctx.guild.id, {'afk_channel': afk_channel.id})
+        await ctx.send(f'AFK channel set to {afk_channel.mention} ({afk_channel.id})')
+
 
 def setup(bot):
     bot.add_cog(Settings(bot))

@@ -168,14 +168,19 @@ class LogEvents(commands.Cog):
         if member.bot:
             return
 
+        user = await self.bot.db.get_user(member.id)
+        if user is None:
+            await self.bot.db.new_user(member.id)
+            user = await self.bot.db.get_user(member.id)
+
+        guild = await self.bot.db.get_guild(member.guild.id)
+
         if not before.channel and after.channel:  # Joined a channel
             await self.send_log(member.guild, f'☎️  {member} (`{member.id}`) joined **#{after.channel.name}**')
+            if guild is not None and guild.get('afk_channel', 0) == after.channel.id:
+                return
 
-            if await self.bot.db.get_user(member.id) is None:
-                await self.bot.db.new_user(member.id)
-
-            data = await self.bot.db.get_user(member.id)
-            voice = data['voice']
+            voice = user['voice']
 
             if voice.get(str(member.guild.id)) is None:
                 voice[str(member.guild.id)] = {}
@@ -186,23 +191,48 @@ class LogEvents(commands.Cog):
         elif before.channel and not after.channel:  # Left a channel
             await self.send_log(member.guild, f'☎️ {member} (`{member.id}`) left **#{before.channel.name}**')
 
-            if user := await self.bot.db.get_user(member.id):
-                if user['voice'].get(str(member.guild.id)) is not None:
-                    voice = user['voice']
-                    if voice[str(member.guild.id)].get('voice_last_joined_ms', 0) != 0:
-                        if voice[str(member.guild.id)].get('voice_time_spent_ms') is None:
-                            voice[str(member.guild.id)]['voice_time_spent_ms'] = 0
+            if guild is not None and guild.get('afk_channel', 0) == before.channel.id:
+                return
 
-                        voice[str(member.guild.id)]['voice_time_spent_ms'] += \
-                            time_ms - voice[str(member.guild.id)]['voice_last_joined_ms']
-                        voice[str(member.guild.id)]['voice_last_joined_ms'] = 0
-                        await self.bot.db.update_user(member.id, {'voice': voice})
-            else:
-                await self.bot.db.new_user(member.id)
+            if user['voice'].get(str(member.guild.id)) is not None:
+                voice = user['voice']
+                if voice[str(member.guild.id)].get('voice_last_joined_ms', 0) != 0:
+                    if voice[str(member.guild.id)].get('voice_time_spent_ms') is None:
+                        voice[str(member.guild.id)]['voice_time_spent_ms'] = 0
+
+                    voice[str(member.guild.id)]['voice_time_spent_ms'] += \
+                        time_ms - voice[str(member.guild.id)]['voice_last_joined_ms']
+                    voice[str(member.guild.id)]['voice_last_joined_ms'] = 0
+                    await self.bot.db.update_user(member.id, {'voice': voice})
         elif before.channel and after.channel:  # Moved to another channel
-            if before.channel != after.channel:
-                await self.send_log(member.guild, f'☎️ {member} (`{member.id}`)'
-                                    f' moved from **#{before.channel.name}** to **#{after.channel.name}**')
+            # TODO: afk_channel column in db and stop recording voice time if moving to afk, or if moving out of afk start recording again
+            if before.channel == after.channel:
+                return
+
+            await self.send_log(member.guild, f'☎️ {member} (`{member.id}`)'
+                                f' moved from **#{before.channel.name}** to **#{after.channel.name}**')
+
+            if guild is not None and guild['afk_channel'] == before.channel.id:  # Moving out of afk channel
+                voice = user['voice']
+
+                if voice.get(str(member.guild.id)) is None:
+                    voice[str(member.guild.id)] = {}
+
+                voice[str(member.guild.id)]['voice_last_joined_ms'] = time_ms
+
+                await self.bot.db.update_user(member.id, {'voice': voice})
+            elif guild is not None and guild['afk_channel'] == after.channel.id:  # Moving to afk channel
+                if user:
+                    if user['voice'].get(str(member.guild.id)) is not None:
+                        voice = user['voice']
+                        if voice[str(member.guild.id)].get('voice_last_joined_ms', 0) != 0:
+                            if voice[str(member.guild.id)].get('voice_time_spent_ms') is None:
+                                voice[str(member.guild.id)]['voice_time_spent_ms'] = 0
+
+                            voice[str(member.guild.id)]['voice_time_spent_ms'] += \
+                                time_ms - voice[str(member.guild.id)]['voice_last_joined_ms']
+                            voice[str(member.guild.id)]['voice_last_joined_ms'] = 0
+                            await self.bot.db.update_user(member.id, {'voice': voice})
 
 
 def setup(bot):
