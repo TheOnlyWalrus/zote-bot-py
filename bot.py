@@ -46,7 +46,7 @@ class ZoteBot(commands.AutoShardedBot):
                 emb.set_thumbnail(url=self.user.avatar_url)
                 emb.set_footer(text=f'{self.user.name}#{self.user.discriminator} (v{VERSION})',
                                icon_url=self.user.avatar_url)
-                emb.add_field(name='Prefix', value=await get_prefix(self, message))
+                emb.add_field(name='Prefix', value=prefix)
                 await message.channel.send(embed=emb)
                 return
 
