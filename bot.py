@@ -81,6 +81,7 @@ if __name__ == '__main__':
                 logger.error(e)
 
     bot.run(
+        # get token from environment, run purple if debug mode is enabled
         os.environ.get('ZOTE_DISCORD_TOKEN', 'abcdefg1234567') if os.environ.get('DEBUG', "0") == "0"
-        else os.environ.get('PURPLE_DISCORD_TOKEN', 'abcdefg1234567')  # get token from environment, run purple if debug mode
+        else os.environ.get('PURPLE_DISCORD_TOKEN', 'abcdefg1234567'),
     )
