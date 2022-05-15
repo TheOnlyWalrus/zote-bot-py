@@ -6,6 +6,20 @@ from discord.ext import commands
 from utils.database import DBConnection
 from utils.utils import aloc
 
+DEFAULT_PREFIX = '>'
+
+
+async def get_prefix(_bot, message):
+    if not message.guild:
+        return DEFAULT_PREFIX
+
+    guild = await _bot.db.get_guild(message.guild.id)
+    # print(guild)
+    if not guild:
+        return DEFAULT_PREFIX
+
+    return guild.get('prefix', DEFAULT_PREFIX)
+
 
 class ZoteBot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
@@ -41,7 +55,7 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    bot = ZoteBot(command_prefix='>', intents=discord.Intents.all())
+    bot = ZoteBot(command_prefix=get_prefix, intents=discord.Intents.all())
 
     for filename in os.listdir('cogs'):
         if filename.endswith('.py'):

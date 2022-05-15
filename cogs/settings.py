@@ -2,6 +2,7 @@ import discord
 import pytz
 import typing
 
+from bot import DEFAULT_PREFIX
 from discord.ext import commands
 
 
@@ -16,7 +17,7 @@ class Settings(commands.Cog):
             await ctx.send('You must provide a valid subcommand.')
 
     @config.command(name='logs')
-    async def config_logs(self, ctx, channel: typing.Optional[discord.TextChannel] = None):
+    async def config_logs(self, ctx, *, channel: typing.Optional[discord.TextChannel] = None):
         guild = await ctx.bot.db.get_guild(ctx.guild.id)
 
         if not guild:
@@ -80,6 +81,29 @@ class Settings(commands.Cog):
 
         await ctx.bot.db.update_guild(ctx.guild.id, {'afk_channel': afk_channel.id})
         await ctx.send(f'AFK channel set to {afk_channel.mention} ({afk_channel.id})')
+
+    @config.command(name='prefix', description='Set the prefix for the bot.')
+    async def config_prefix(self, ctx, *, prefix: typing.Optional[str] = None):
+        guild = await ctx.bot.db.get_guild(ctx.guild.id)
+
+        if not guild:
+            await ctx.bot.db.new_guild(ctx.guild.id)
+            guild = await ctx.bot.db.get_guild(ctx.guild.id)
+
+        if prefix is None:
+            await ctx.send(f'Prefix is set to `{guild.get("prefix", DEFAULT_PREFIX)}`')
+            return
+
+        if len(prefix) > 3:
+            await ctx.send('Prefix must be no more than 3 characters.')
+            return
+
+        if ' ' in prefix:
+            await ctx.send('Prefix cannot contain spaces.')
+            return
+
+        await ctx.bot.db.update_guild(ctx.guild.id, {'prefix': prefix})
+        await ctx.send(f'Prefix set to `{prefix}`')
 
 
 def setup(bot):
