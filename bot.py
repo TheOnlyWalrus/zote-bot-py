@@ -7,6 +7,7 @@ from utils.database import DBConnection
 from utils.utils import aloc
 
 DEFAULT_PREFIX = '>'
+VERSION = '0.1.0'
 
 
 async def get_prefix(_bot, message):
@@ -14,7 +15,7 @@ async def get_prefix(_bot, message):
         return DEFAULT_PREFIX
 
     guild = await _bot.db.get_guild(message.guild.id)
-    # print(guild)
+
     if not guild:
         return DEFAULT_PREFIX
 
@@ -35,6 +36,20 @@ class ZoteBot(commands.AutoShardedBot):
 
     async def on_message(self, message):
         if not self._watcher_mode:
+            if message.author.bot:
+                return
+
+            prefix = await get_prefix(self, message)
+            if self.user.mention in message.content \
+                    and not message.content.startswith(prefix):  # any ping, except when a command is used
+                emb = discord.Embed(title='ZoteBot', description='bot.', color=message.guild.me.color)
+                emb.set_thumbnail(url=self.user.avatar_url)
+                emb.set_footer(text=f'{self.user.name}#{self.user.discriminator} (v{VERSION})',
+                               icon_url=self.user.avatar_url)
+                emb.add_field(name='Prefix', value=await get_prefix(self, message))
+                await message.channel.send(embed=emb)
+                return
+
             await self.process_commands(message)
 
     async def on_ready(self):
