@@ -18,10 +18,12 @@ class BaseDBConnection:
         self.host = host
         self.db_name = db_name
         self.user = user
+        self.logger = logging.getLogger(__name__)
 
     async def connect(self):
         if self.pool:
-            raise DBException(f'Connection pool for database {self.db_name} already established.')
+            self.logger.error(f'Connection pool for database {self.db_name} already exists.')
+            return
 
         self.pool = await asyncpg.create_pool(
             user=self.user,
@@ -32,7 +34,8 @@ class BaseDBConnection:
 
     async def close(self):
         if not self.pool:
-            raise DBException(f'Connection to database {self.db_name} does not exist.')
+            self.logger.error(f'Connection pool for database {self.db_name} does not exist.')
+            return
 
         await self.pool.close()
         self.pool = None
