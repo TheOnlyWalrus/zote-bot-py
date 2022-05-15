@@ -7,12 +7,12 @@ class LogEvents(commands.Cog):
         self.bot = bot
 
     async def send_log(self, guild, message):
-        if guild is None:
+        if guild is None:  # User dm
             return
 
-        time = await self.bot.db.get_time(guild.id)
+        time = await self.bot.db.get_time(guild.id)  # Get the current time for guild timezone
 
-        if _guild := await self.bot.db.get_guild(guild.id):
+        if _guild := await self.bot.db.get_guild(guild.id):  # Get the guild data
             if (l := _guild.get('logs', 0)) != 0:
                 channel = guild.get_channel(l)
                 await channel.send(f'{time} {message}')

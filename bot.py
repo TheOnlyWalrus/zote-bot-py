@@ -11,15 +11,15 @@ VERSION = '0.1.0'
 
 
 async def get_prefix(_bot, message):
-    if not message.guild:
+    if not message.guild:  # if the message is a DM
         return DEFAULT_PREFIX
 
     guild = await _bot.db.get_guild(message.guild.id)
 
-    if not guild:
+    if not guild:  # no guild data
         return DEFAULT_PREFIX
 
-    return guild.get('prefix', DEFAULT_PREFIX)
+    return guild.get('prefix', DEFAULT_PREFIX)  # return the guild prefix or default
 
 
 class ZoteBot(commands.AutoShardedBot):
@@ -35,13 +35,14 @@ class ZoteBot(commands.AutoShardedBot):
         await super().close()
 
     async def on_message(self, message):
-        if not self._watcher_mode:
+        if not self._watcher_mode:  # Normal bot functionality
             if message.author.bot:
                 return
 
             prefix = await get_prefix(self, message)
             if self.user.mention in message.content \
                     and not message.content.startswith(prefix):  # any ping, except when a command is used
+                # build bot info embed
                 emb = discord.Embed(title='ZoteBot', description='bot.', color=message.guild.me.color)
                 emb.set_thumbnail(url=self.user.avatar_url)
                 emb.set_footer(text=f'{self.user.name}#{self.user.discriminator} (v{VERSION})',
@@ -59,7 +60,7 @@ class ZoteBot(commands.AutoShardedBot):
 
 
 if __name__ == '__main__':
-    logger = logging.getLogger(
+    logger = logging.getLogger(  # create logger
         'zote' if os.environ.get('DEBUG', "0") == "0"
         else 'purple'
     )
@@ -75,11 +76,11 @@ if __name__ == '__main__':
     for filename in os.listdir('cogs'):
         if filename.endswith('.py'):
             try:
-                bot.load_extension(f'cogs.{filename[:-3]}')
+                bot.load_extension(f'cogs.{filename[:-3]}')  # load all cogs
             except commands.ExtensionError as e:
                 logger.error(e)
 
     bot.run(
         os.environ.get('ZOTE_DISCORD_TOKEN', 'abcdefg1234567') if os.environ.get('DEBUG', "0") == "0"
-        else os.environ.get('PURPLE_DISCORD_TOKEN', 'abcdefg1234567')
+        else os.environ.get('PURPLE_DISCORD_TOKEN', 'abcdefg1234567')  # get token from environment, run purple if debug mode
     )

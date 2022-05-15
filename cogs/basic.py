@@ -68,7 +68,8 @@ class Basic(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(description="Sends a random precept from the 57 precepts of the Mighty Zote.",\
+                      brief="Sends a random zote precept.")
     async def precept(self, ctx):
         p = random.choice(PRECEPTS)
         await ctx.send(p)

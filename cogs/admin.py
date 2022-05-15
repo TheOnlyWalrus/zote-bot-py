@@ -7,7 +7,7 @@ import traceback
 import typing
 
 from discord.ext import commands
-from utils.checks import access_level, AccessLevel, access_level_cog
+from utils.checks import access_level, AccessLevel, access_level_check
 
 
 class Admin(commands.Cog):
@@ -17,9 +17,9 @@ class Admin(commands.Cog):
         self._last_result = None
 
     async def cog_check(self, ctx):
-        return await access_level_cog(ctx, AccessLevel.TRUSTED)  # Minimum access level to use this cog
+        return await access_level_check(ctx, AccessLevel.TRUSTED)  # Minimum access level to use this cog
 
-    # Below is from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py
+    # Below is from a previous version of https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py
     async def run_process(self, command: str) -> list[str]:
         try:
             process = await asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

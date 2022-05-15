@@ -8,10 +8,10 @@ class AccessLevel:
     ADMIN = 2
 
 
-def access_level(min_level: int):
+def access_level(min_level: int):  # decorator
     async def check(ctx):
         user = await ctx.bot.db.get_user(ctx.author.id)
-        if not user:
+        if not user:  # User not in database
             await ctx.bot.db.new_user(ctx.author.id)
             return AccessLevel.USER >= min_level
 
@@ -20,9 +20,9 @@ def access_level(min_level: int):
     return commands.check(check)
 
 
-async def access_level_cog(ctx, min_level: int):
+async def access_level_check(ctx, min_level: int):  # can be called anywhere
     user = await ctx.bot.db.get_user(ctx.author.id)
-    if not user:
+    if not user:  # User not in database
         await ctx.bot.db.new_user(ctx.author.id)
         return AccessLevel.USER >= min_level
 
