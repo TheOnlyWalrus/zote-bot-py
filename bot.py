@@ -3,11 +3,15 @@ import logging
 import os
 
 from discord.ext import commands
-from utils.database import DBConnection
-from utils.utils import aloc
+from utils import aloc, DBConnection
 
+# Constants
+
+BOT_DESCRIPTION = '''
+bot.
+'''
+BOT_VERSION = '0.1.0'
 DEFAULT_PREFIX = '>'
-VERSION = '0.1.0'
 
 
 async def get_prefix(_bot, message):
@@ -26,7 +30,7 @@ class ZoteBot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db = DBConnection()
-        self._watcher_mode = os.environ.get('WATCHER_MODE', "0") == "1"
+        self._watcher_mode = os.environ.get('WATCHER_MODE', '0') == '1'
 
     async def close(self):
         if self.db.is_connected:
@@ -43,9 +47,9 @@ class ZoteBot(commands.AutoShardedBot):
             if self.user.mention in message.content \
                     and not message.content.startswith(prefix):  # any ping, except when a command is used
                 # build bot info embed
-                emb = discord.Embed(title='ZoteBot', description='bot.', color=message.guild.me.color)
+                emb = discord.Embed(title='Zote', description=BOT_DESCRIPTION, color=message.guild.me.color)
                 emb.set_thumbnail(url=self.user.avatar_url)
-                emb.set_footer(text=f'{self.user.name}#{self.user.discriminator} (v{VERSION})',
+                emb.set_footer(text=f'{self.user.name}#{self.user.discriminator} (v{BOT_VERSION})',
                                icon_url=self.user.avatar_url)
                 emb.add_field(name='Prefix', value=prefix)
                 await message.channel.send(embed=emb)
@@ -82,6 +86,6 @@ if __name__ == '__main__':
 
     bot.run(
         # get token from environment, run purple if debug mode is enabled
-        os.environ.get('ZOTE_DISCORD_TOKEN', 'abcdefg1234567') if os.environ.get('DEBUG', "0") == "0"
+        os.environ.get('ZOTE_DISCORD_TOKEN', 'abcdefg1234567') if os.environ.get('DEBUG', '0') == '0'
         else os.environ.get('PURPLE_DISCORD_TOKEN', 'abcdefg1234567'),
     )

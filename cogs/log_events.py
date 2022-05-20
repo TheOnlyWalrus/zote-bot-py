@@ -18,6 +18,26 @@ class LogEvents(commands.Cog):
                 await channel.send(f'{time} {message}')
 
     @commands.Cog.listener()
+    async def on_member_ban(self, guild, user):
+        if user.bot:
+            return
+
+        if not guild:  # should never happen but just incase
+            return
+
+        await self.send_log(guild, f'🚨 {user} (`{user.id}`) was banned')
+
+    @commands.Cog.listener()
+    async def on_member_unban(self, guild, user):
+        if user.bot:
+            return
+
+        if not guild:  # should never happen but just incase
+            return
+
+        await self.send_log(guild, f'🚨 {user} (`{user.id}`) was unbanned')
+
+    @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         if payload.guild_id is None:
             return
@@ -115,6 +135,12 @@ class LogEvents(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
+        bans = await member.guild.bans()
+        filtered = filter(lambda entry: entry.user.id == member.id, bans)  # check if user left because of being banned
+
+        if filtered:  # list is not empty, this user has been banned
+            return
+
         await self.send_log(member.guild, f'📤 {member} (`{member.id}`) left the server.')
 
     @commands.Cog.listener()
