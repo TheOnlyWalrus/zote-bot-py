@@ -136,7 +136,8 @@ class LogEvents(commands.Cog):
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         bans = await member.guild.bans()
-        filtered = filter(lambda entry: entry.user.id == member.id, bans)  # check if user left because of being banned
+        # check if user left because of being banned
+        filtered = list(filter(lambda entry: entry.user.id == member.id, bans))
 
         if filtered:  # list is not empty, this user has been banned
             return
