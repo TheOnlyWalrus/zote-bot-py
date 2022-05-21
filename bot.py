@@ -10,7 +10,7 @@ from utils import aloc, DBConnection
 BOT_DESCRIPTION = '''
 bot.
 '''
-BOT_VERSION = '0.1.1'
+BOT_VERSION = '0.2.0'
 DEFAULT_PREFIX = '>'
 
 
