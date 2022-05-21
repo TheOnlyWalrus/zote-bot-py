@@ -1,10 +1,11 @@
 import discord
 import typing
 
+from bot import BasicCog
 from discord.ext import commands
 
 
-class Moderation(commands.Cog):
+class Moderation(BasicCog):
     def __init__(self, bot):
         self.bot = bot
         self.send_log = self.bot.get_cog('LogEvents').send_log  # Get the send_log function from LogEvents cog

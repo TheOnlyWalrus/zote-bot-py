@@ -3,7 +3,7 @@ import logging
 import os
 
 from discord.ext import commands
-from utils import aloc, DBConnection
+from utils import aloc, DBConnection, PermissionDenied, access_level_check, AccessLevel
 
 # Constants
 
@@ -12,6 +12,11 @@ bot.
 '''
 BOT_VERSION = '0.2.0'
 DEFAULT_PREFIX = '>'
+
+
+class BasicCog(commands.Cog):
+    async def cog_check(self, ctx):
+        return await access_level_check(ctx, AccessLevel.USER)
 
 
 async def get_prefix(_bot, message):
@@ -63,6 +68,10 @@ class ZoteBot(commands.AutoShardedBot):
         logger.debug(f'All lines of code: {aloc()}')
 
     async def on_command_error(self, context, exception):
+        if isinstance(exception, PermissionDenied):
+            await context.send(exception)
+            return
+
         if isinstance(exception, commands.MissingPermissions):
             await context.send(f'You don\'t have the required permissions to use this command.')
             return

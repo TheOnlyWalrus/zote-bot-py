@@ -1,5 +1,6 @@
 import random
 
+from bot import BasicCog
 from discord.ext import commands
 
 
@@ -64,7 +65,7 @@ PRECEPTS = [
 ]
 
 
-class Basic(commands.Cog):
+class Basic(BasicCog):
     def __init__(self, bot):
         self.bot = bot
 

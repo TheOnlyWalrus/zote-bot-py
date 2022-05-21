@@ -1,8 +1,9 @@
+from bot import BasicCog
 from discord.ext import commands
 from time import time_ns
 
 
-class LogEvents(commands.Cog):
+class LogEvents(BasicCog):
     def __init__(self, bot):
         self.bot = bot
 

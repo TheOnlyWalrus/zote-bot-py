@@ -1,6 +1,7 @@
 import discord
 import typing
 
+from bot import BasicCog
 from discord.ext import commands
 
 
@@ -13,7 +14,7 @@ def convert_time(ms):
     return int(d), int(h), int(m), int(s) + int(ms) / 1000
 
 
-class Information(commands.Cog):
+class Information(BasicCog):
     def __init__(self, bot):
         self.bot = bot
 

@@ -1,11 +1,12 @@
 import discord
 import typing
 
+from bot import BasicCog
 from discord.ext import commands
 from utils.checks import access_level, AccessLevel
 
 
-class Database(commands.Cog):
+class Database(BasicCog):
     def __init__(self, bot):
         self.bot = bot
 

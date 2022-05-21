@@ -6,11 +6,12 @@ import subprocess
 import traceback
 import typing
 
+from bot import BasicCog
 from discord.ext import commands
 from utils.checks import access_level, AccessLevel, access_level_check
 
 
-class Admin(commands.Cog):
+class Admin(BasicCog):
     def __init__(self, bot):
         self.bot = bot
         self.sessions = set()
