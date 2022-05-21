@@ -7,15 +7,35 @@ class LogEvents(commands.Cog):
         self.bot = bot
 
     async def send_log(self, guild, message):
-        if guild is None:
+        if guild is None:  # User dm
             return
 
-        time = await self.bot.db.get_time(guild.id)
+        time = await self.bot.db.get_time(guild.id)  # Get the current time for guild timezone
 
-        if _guild := await self.bot.db.get_guild(guild.id):
+        if _guild := await self.bot.db.get_guild(guild.id):  # Get the guild data
             if (l := _guild.get('logs', 0)) != 0:
                 channel = guild.get_channel(l)
                 await channel.send(f'{time} {message}')
+
+    @commands.Cog.listener()
+    async def on_member_ban(self, guild, user):
+        if user.bot:
+            return
+
+        if not guild:  # should never happen but just incase
+            return
+
+        await self.send_log(guild, f'🚨 {user} (`{user.id}`) was banned')
+
+    @commands.Cog.listener()
+    async def on_member_unban(self, guild, user):
+        if user.bot:
+            return
+
+        if not guild:  # should never happen but just incase
+            return
+
+        await self.send_log(guild, f'🚨 {user} (`{user.id}`) was unbanned')
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -115,6 +135,13 @@ class LogEvents(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
+        bans = await member.guild.bans()
+        # check if user left because of being banned
+        filtered = list(filter(lambda entry: entry.user.id == member.id, bans))
+
+        if filtered:  # list is not empty, this user has been banned
+            return
+
         await self.send_log(member.guild, f'📤 {member} (`{member.id}`) left the server.')
 
     @commands.Cog.listener()

@@ -10,7 +10,7 @@ def convert_time(ms):
     h, m = divmod(m, 60)
     d, h = divmod(h, 24)
 
-    return int(d), int(h), int(m), int(s), int(ms)
+    return int(d), int(h), int(m), int(s) + int(ms) / 1000
 
 
 class Information(commands.Cog):
@@ -28,19 +28,19 @@ class Information(commands.Cog):
             user = ctx.author
 
         data = await self.bot.db.get_user(user.id)
-        if data is None:
+        if data is None:  # User does not have a record in db
             await ctx.send(f'{user} has no voice time recorded.')
             return
 
-        if (voice := data['voice'].get(str(ctx.guild.id))) is None:
+        if (voice := data['voice'].get(str(ctx.guild.id))) is None:  # No voice data for this user
             await ctx.send(f'{user} has no voice time recorded.')
             return
 
-        if (vt := voice.get('voice_time_spent_ms', 0)) == 0:
+        if (vt := voice.get('voice_time_spent_ms', 0)) == 0:  # No voice data for this guild
             await ctx.send(f'{user} has no voice time recorded.')
             return
 
-        d, h, m, s, _ = convert_time(vt)
+        d, h, m, s = convert_time(vt)
 
         ret = f'{user} has spent'
         if d > 0:
@@ -50,25 +50,25 @@ class Information(commands.Cog):
         if m > 0:
             ret += f' {m}m'
         if s > 0:
-            ret += f' {s}s'
+            ret += f' {s:.1f}s'
 
         await ctx.send(f'{ret} in voice channels.')
 
     @voice.command(name='top', description='Displays the top 10 voice time rankings in this guild.')
     async def voice_top(self, ctx):
         data = await self.bot.db.get_top_voice_times(ctx.guild.id)
-        if not data:
+        if not data:  # No voice data in this guild for any user
             await ctx.send('No voice time has been recorded in this guild.')
             return
 
         ret = ''
 
-        for i, (user_id, voice) in enumerate(data):
+        for i, (user_id, voice) in enumerate(data):  # Iterate through top 10 voice times in the guild
             user = self.bot.get_user(user_id)
-            if user is None:
+            if user is None:  # User is not in the bots cache
                 user = 'Unknown#0000'
 
-            d, h, m, s, _ = convert_time(voice['voice_time_spent_ms'])
+            d, h, m, s = convert_time(voice['voice_time_spent_ms'])
             ret += f'{i + 1}. {user} -'
             if d > 0:
                 ret += f' {d}d'
@@ -77,7 +77,7 @@ class Information(commands.Cog):
             if m > 0:
                 ret += f' {m}m'
             if s > 0:
-                ret += f' {s}s'
+                ret += f' {s:.1f}s'
             ret += '\n'
 
         await ctx.send(ret)
