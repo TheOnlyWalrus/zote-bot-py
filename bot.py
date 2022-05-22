@@ -12,6 +12,7 @@ bot.
 '''
 BOT_VERSION = '0.2.0'
 DEFAULT_PREFIX = '>'
+OWNER_ID = 335682119982514180
 
 
 class BasicCog(commands.Cog):
@@ -96,7 +97,7 @@ class ZoteBot(commands.AutoShardedBot):
 
 
 if __name__ == '__main__':
-    bot = ZoteBot(command_prefix=get_prefix, intents=discord.Intents.all())
+    bot = ZoteBot(command_prefix=get_prefix, intents=discord.Intents.all(), owner_id=OWNER_ID)
 
     # moderation.py needs to be loaded after log_events.py, (Moderation cog accesses LogEvents cog)
     # this is not and issue due to alphabetical order but may arise later with other cogs
@@ -105,7 +106,7 @@ if __name__ == '__main__':
             try:
                 bot.load_extension(f'cogs.{filename[:-3]}')  # load all cogs
             except commands.ExtensionError as e:
-                logger.error(e)
+                bot.logger.error(e)
 
     bot.run(
         # get token from environment, run purple if debug mode is enabled
