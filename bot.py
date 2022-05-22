@@ -67,19 +67,19 @@ class ZoteBot(commands.AutoShardedBot):
         logger.debug(f'Logged in as {bot.user} ({bot.user.id})')
         logger.debug(f'All lines of code: {aloc()}')
 
-    async def on_command_error(self, context, exception):
+    async def on_command_error(self, ctx, exception):
         if isinstance(exception, PermissionDenied):
-            await context.send(exception)
+            await ctx.send(exception)
             return
 
         if isinstance(exception, commands.MissingPermissions):
-            await context.send(f'You don\'t have the required permissions to use this command.')
+            await ctx.send(f'You don\'t have the required permissions to use this command.')
             return
 
         if isinstance(exception, commands.CommandNotFound):
             return
 
-        logger.exception(f'Exception in command {context.command.qualified_name}:', exc_info=exception)
+        logger.exception(f'Exception in command {ctx.command.qualified_name}:', exc_info=exception)
 
 
 if __name__ == '__main__':
