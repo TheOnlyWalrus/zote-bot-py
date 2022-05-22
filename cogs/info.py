@@ -18,7 +18,8 @@ class Information(BasicCog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group()
+    @commands.group(description='View subcommands for more information.',
+                    brief='Voice time data commands.')
     async def voice(self, ctx):
         if ctx.invoked_subcommand is None:
             await ctx.send('You must provide a valid subcommand.')

@@ -93,6 +93,11 @@ class ZoteBot(commands.AutoShardedBot):
         if isinstance(exception, commands.CommandNotFound):
             return
 
+        if isinstance(exception, commands.MissingRequiredArgument):
+            await ctx.send(
+                f'You are missing required arguments for this command. See `{ctx.prefix}help {ctx.command}`.')
+            return
+
         self.logger.exception(f'Exception in command {ctx.command.qualified_name}:', exc_info=exception)
 
 

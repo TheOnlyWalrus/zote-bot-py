@@ -157,6 +157,31 @@ class LogEvents(BasicCog):
             await self.send_log(before.guild, f'🔄 {before} (`{before.id}`) nickname changed:\n'
                                               f'`{before.nick}` → `{after.nick}`')
 
+        if before.roles != after.roles:
+            added = list(
+                filter(
+                    lambda r: r not in before.roles, after.roles  # If the role is not in before, it's been added
+                )
+            )
+            removed = list(
+                filter(
+                    lambda r: r not in after.roles, before.roles  # If the role is not in after, it's been removed
+                )
+            )
+
+            if added:  # Role(s) have been added
+                roles = '\n'.join(
+                    map(lambda r: f'{r.name} (`{r.id}`)', added)  # collection of role name and id
+                )
+                await self.send_log(before.guild, f'🔑 {after} (`{after.id}`) has been given the role(s):\n{roles}')
+
+            if removed:  # Role(s) have been removed
+                roles = '\n'.join(
+                    map(lambda r: f'{r.name} (`{r.id}`)', removed)  # collection of role name and id
+                )
+                await self.send_log(
+                    before.guild, f'🔑 {after} (`{after.id}`) has been removed from the role(s):\n{roles}')
+
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         if message.guild is None:
