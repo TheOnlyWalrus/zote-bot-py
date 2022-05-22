@@ -37,6 +37,19 @@ class ZoteBot(commands.AutoShardedBot):
         self.db = DBConnection()
         self._watcher_mode = os.environ.get('WATCHER_MODE', '0') == '1'
 
+        logger = logging.getLogger(  # create logger
+            'zote' if os.environ.get('DEBUG', "0") == "0"
+            else 'purple'
+        )
+        logger.setLevel(logging.DEBUG)
+
+        # setup logger
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        self.logger = logger
+
     async def close(self):
         if self.db.is_connected:
             await self.db.close()
@@ -64,8 +77,8 @@ class ZoteBot(commands.AutoShardedBot):
 
     async def on_ready(self):
         await self.db.connect()
-        logger.debug(f'Logged in as {bot.user} ({bot.user.id})')
-        logger.debug(f'All lines of code: {aloc()}')
+        self.logger.debug(f'Logged in as {bot.user} ({bot.user.id})')
+        self.logger.debug(f'All lines of code: {aloc()}')
 
     async def on_command_error(self, ctx, exception):
         if isinstance(exception, PermissionDenied):
@@ -79,23 +92,14 @@ class ZoteBot(commands.AutoShardedBot):
         if isinstance(exception, commands.CommandNotFound):
             return
 
-        logger.exception(f'Exception in command {ctx.command.qualified_name}:', exc_info=exception)
+        self.logger.exception(f'Exception in command {ctx.command.qualified_name}:', exc_info=exception)
 
 
 if __name__ == '__main__':
-    logger = logging.getLogger(  # create logger
-        'zote' if os.environ.get('DEBUG', "0") == "0"
-        else 'purple'
-    )
-    logger.setLevel(logging.DEBUG)
-
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
     bot = ZoteBot(command_prefix=get_prefix, intents=discord.Intents.all())
 
+    # moderation.py needs to be loaded after log_events.py, (Moderation cog accesses LogEvents cog)
+    # this is not and issue due to alphabetical order but may arise later with other cogs
     for filename in os.listdir('cogs'):
         if filename.endswith('.py'):
             try:
