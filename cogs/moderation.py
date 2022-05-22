@@ -1,15 +1,18 @@
 import discord
 import typing
 
+from bot import BasicCog
 from discord.ext import commands
 
 
-class Moderation(commands.Cog):
+class Moderation(BasicCog):
     def __init__(self, bot):
         self.bot = bot
         self.send_log = self.bot.get_cog('LogEvents').send_log  # Get the send_log function from LogEvents cog
 
-    @commands.command()
+    @commands.command(description='Kick a given member from the current guild. reason argument is optional.',
+                      usage='<user> [reason]',
+                      brief='Kicks a member from the guild.')
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member, *, reason: typing.Optional[str] = 'No reason provided.'):
         if not ctx.guild:  # no clue how this could happen, but just incase
@@ -39,7 +42,10 @@ class Moderation(commands.Cog):
         except discord.Forbidden:
             await ctx.send('Something went wrong.')
 
-    @commands.command()
+    @commands.command(description='Ban a given user from the current guild. reason argument is optional.'
+                                  ' The given user does not need to be in the current guild to be banned.',
+                      usage='<user> [reason]',
+                      brief='Bans a user from the guild.')
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, member: typing.Union[discord.Member, discord.User], *,
                   reason: typing.Optional[str] = 'No reason provided.'):
@@ -72,7 +78,9 @@ class Moderation(commands.Cog):
         except discord.Forbidden:
             await ctx.send('Something went wrong.')
 
-    @commands.command()
+    @commands.command(description='Unban a given user from the current guild. reason argument is optional.',
+                      usage='<user-id> [reason]',
+                      brief='Unbans a user from the guild.')
     @commands.has_permissions(ban_members=True)
     async def unban(self, ctx, user: typing.Union[discord.User], *,
                     reason: typing.Optional[str] = 'No reason provided.'):

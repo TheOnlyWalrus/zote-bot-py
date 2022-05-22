@@ -2,11 +2,11 @@ import discord
 import pytz
 import typing
 
-from bot import DEFAULT_PREFIX
+from bot import DEFAULT_PREFIX, BasicCog
 from discord.ext import commands
 
 
-class Settings(commands.Cog):
+class Settings(BasicCog):
     def __init__(self, bot):
         self.bot = bot
 

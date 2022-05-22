@@ -1,5 +1,6 @@
 import random
 
+from bot import BasicCog
 from discord.ext import commands
 
 
@@ -64,12 +65,12 @@ PRECEPTS = [
 ]
 
 
-class Basic(commands.Cog):
+class Basic(BasicCog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(description="Sends a random precept from the 57 precepts of the Mighty Zote.",\
-                      brief="Sends a random zote precept.")
+    @commands.command(description='Sends a random precept from the 57 precepts of the Mighty Zote.',
+                      brief='Sends a random zote precept.')
     async def precept(self, ctx):
         p = random.choice(PRECEPTS)
         await ctx.send(p)
