@@ -1,6 +1,7 @@
 from bot import BasicCog
 from discord.ext import commands
 from time import time_ns
+from utils import escape_user
 
 
 class LogEvents(BasicCog):
@@ -26,7 +27,7 @@ class LogEvents(BasicCog):
         if not guild:  # should never happen but just incase
             return
 
-        await self.send_log(guild, f'🚨 {user} (`{user.id}`) was banned')
+        await self.send_log(guild, f'🚨 {escape_user(str(user))} (`{user.id}`) was banned')
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild, user):
@@ -36,7 +37,7 @@ class LogEvents(BasicCog):
         if not guild:  # should never happen but just incase
             return
 
-        await self.send_log(guild, f'🚨 {user} (`{user.id}`) was unbanned')
+        await self.send_log(guild, f'🚨 {escape_user(str(user))} (`{user.id}`) was unbanned')
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -132,7 +133,7 @@ class LogEvents(BasicCog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        await self.send_log(member.guild, f'📥 {member} (`{member.id}`) joined the server.')
+        await self.send_log(member.guild, f'📥 {escape_user(str(member))} (`{member.id}`) joined the server.')
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
@@ -143,7 +144,7 @@ class LogEvents(BasicCog):
         if filtered:  # list is not empty, this user has been banned
             return
 
-        await self.send_log(member.guild, f'📤 {member} (`{member.id}`) left the server.')
+        await self.send_log(member.guild, f'📤 {escape_user(str(member))} (`{member.id}`) left the server.')
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
@@ -154,7 +155,7 @@ class LogEvents(BasicCog):
             return
 
         if before.nick != after.nick:
-            await self.send_log(before.guild, f'🔄 {before} (`{before.id}`) nickname changed:\n'
+            await self.send_log(before.guild, f'🔄 {escape_user(str(before))} (`{before.id}`) nickname changed:\n'
                                               f'`{before.nick}` → `{after.nick}`')
 
         if before.roles != after.roles:
@@ -173,14 +174,16 @@ class LogEvents(BasicCog):
                 roles = '\n'.join(
                     map(lambda r: f'{r.name} (`{r.id}`)', added)  # collection of role name and id
                 )
-                await self.send_log(before.guild, f'🔑 {after} (`{after.id}`) has been given the role(s):\n{roles}')
+                await self.send_log(before.guild, f'🔑 {escape_user(str(after))} (`{after.id}`)'
+                                                  f' has been given the role(s):\n{roles}')
 
             if removed:  # Role(s) have been removed
                 roles = '\n'.join(
                     map(lambda r: f'{r.name} (`{r.id}`)', removed)  # collection of role name and id
                 )
                 await self.send_log(
-                    before.guild, f'🔑 {after} (`{after.id}`) has been removed from the role(s):\n{roles}')
+                    before.guild, f'🔑 {escape_user(str(after))} (`{after.id}`)'
+                                  f' has been removed from the role(s):\n{roles}')
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
@@ -193,7 +196,8 @@ class LogEvents(BasicCog):
         attch = [
             m.url for m in message.attachments
         ]
-        s = f'🗑️ {message.author} (`{message.author.id}`) message deleted in **#{message.channel.name}**:\n' \
+        s = f'🗑️ {escape_user(str(message.author))} (`{message.author.id}`)' \
+            f' message deleted in **#{message.channel.name}**:\n' \
             f'{message.content}\n' \
             'Attachments:\n' + ('\n'.join(attch) if attch else 'None')
 
@@ -211,8 +215,11 @@ class LogEvents(BasicCog):
             return
 
         if before.content != after.content:
-            await self.send_log(before.guild, f'✏️ {before.author} (`{before.author.id}`) message edited in'
-                                f' **#{before.channel.name}**:\n**B:** {before.content}\n**A:** {after.content}')
+            await self.send_log(
+                before.guild, f'✏️ {escape_user(str(before.author))} (`{before.author.id}`)'
+                              f' message edited in'
+                              f' **#{before.channel.name}**:\n**B:** {before.content}\n**A:** {after.content}'
+            )
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -229,7 +236,8 @@ class LogEvents(BasicCog):
         guild = await self.bot.db.get_guild(member.guild.id)
 
         if not before.channel and after.channel:  # Joined a channel
-            await self.send_log(member.guild, f'☎️  {member} (`{member.id}`) joined **#{after.channel.name}**')
+            await self.send_log(member.guild, f'☎️  {escape_user(str(member))} (`{member.id}`)'
+                                              f' joined **#{after.channel.name}**')
             if guild is not None and guild.get('afk_channel', 0) == after.channel.id:
                 return
 
@@ -242,7 +250,8 @@ class LogEvents(BasicCog):
 
             await self.bot.db.update_user(member.id, {'voice': voice})
         elif before.channel and not after.channel:  # Left a channel
-            await self.send_log(member.guild, f'☎️ {member} (`{member.id}`) left **#{before.channel.name}**')
+            await self.send_log(member.guild, f'☎️ {escape_user(str(member))} (`{member.id}`)'
+                                              f' left **#{before.channel.name}**')
 
             if guild is not None and guild.get('afk_channel', 0) == before.channel.id:
                 return
@@ -258,11 +267,10 @@ class LogEvents(BasicCog):
                     voice[str(member.guild.id)]['voice_last_joined_ms'] = 0
                     await self.bot.db.update_user(member.id, {'voice': voice})
         elif before.channel and after.channel:  # Moved to another channel
-            # TODO: afk_channel column in db and stop recording voice time if moving to afk, or if moving out of afk start recording again
             if before.channel == after.channel:
                 return
 
-            await self.send_log(member.guild, f'☎️ {member} (`{member.id}`)'
+            await self.send_log(member.guild, f'☎️ {escape_user(str(member))} (`{member.id}`)'
                                 f' moved from **#{before.channel.name}** to **#{after.channel.name}**')
 
             if guild is not None and guild['afk_channel'] == before.channel.id:  # Moving out of afk channel
@@ -273,19 +281,22 @@ class LogEvents(BasicCog):
 
                 voice[str(member.guild.id)]['voice_last_joined_ms'] = time_ms
 
-                await self.bot.db.update_user(member.id, {'voice': voice})
-            elif guild is not None and guild['afk_channel'] == after.channel.id:  # Moving to afk channel
-                if user:
-                    if user['voice'].get(str(member.guild.id)) is not None:
-                        voice = user['voice']
-                        if voice[str(member.guild.id)].get('voice_last_joined_ms', 0) != 0:
-                            if voice[str(member.guild.id)].get('voice_time_spent_ms') is None:
-                                voice[str(member.guild.id)]['voice_time_spent_ms'] = 0
+                return await self.bot.db.update_user(member.id, {'voice': voice})
 
-                            voice[str(member.guild.id)]['voice_time_spent_ms'] += \
-                                time_ms - voice[str(member.guild.id)]['voice_last_joined_ms']
-                            voice[str(member.guild.id)]['voice_last_joined_ms'] = 0
-                            await self.bot.db.update_user(member.id, {'voice': voice})
+            if guild is not None and guild['afk_channel'] == after.channel.id:  # Moving to afk channel
+                if not user:
+                    return
+
+                if user['voice'].get(str(member.guild.id)) is not None:
+                    voice = user['voice']
+                    if voice[str(member.guild.id)].get('voice_last_joined_ms', 0) != 0:
+                        if voice[str(member.guild.id)].get('voice_time_spent_ms') is None:
+                            voice[str(member.guild.id)]['voice_time_spent_ms'] = 0
+
+                        voice[str(member.guild.id)]['voice_time_spent_ms'] += \
+                            time_ms - voice[str(member.guild.id)]['voice_last_joined_ms']
+                        voice[str(member.guild.id)]['voice_last_joined_ms'] = 0
+                        await self.bot.db.update_user(member.id, {'voice': voice})
 
 
 def setup(bot):

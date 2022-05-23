@@ -10,6 +10,21 @@ COUNT_EXTENSIONS = (
     '.py',
 )
 
+ESCAPE_CHARS = [  # (find, replace)
+    ('`', '\\`')
+]
+
+
+def escape_user(username: str) -> str:
+    """
+    Escapes a username so that it can be used in a discord message.
+    """
+    u = username
+    for char, escape in ESCAPE_CHARS:
+        u = u.replace(char, escape)
+
+    return u
+
 
 def aloc() -> int:
     """

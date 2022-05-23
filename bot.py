@@ -10,7 +10,7 @@ from utils import aloc, DBConnection, PermissionDenied, access_level_check, Acce
 BOT_DESCRIPTION = '''
 bot.
 '''
-BOT_VERSION = '0.2.3'
+BOT_VERSION = '0.2.4'
 DEFAULT_PREFIX = '>'
 OWNER_ID = 335682119982514180
 
