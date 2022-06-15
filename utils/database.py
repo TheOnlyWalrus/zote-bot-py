@@ -34,7 +34,7 @@ class BaseDBConnection:
 
         self.pool = await asyncpg.create_pool(  # Create a connection pool
             user=self.user,
-            password=os.environ.get('ZOTE_DB_PASSWORD'),
+            password=os.environ.get('DB_PASSWORD'),
             database=self.db_name,
             host=self.host
         )

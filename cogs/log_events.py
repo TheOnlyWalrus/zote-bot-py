@@ -236,7 +236,7 @@ class LogEvents(BasicCog):
         guild = await self.bot.db.get_guild(member.guild.id)
 
         if not before.channel and after.channel:  # Joined a channel
-            await self.send_log(member.guild, f'☎️  {escape_user(str(member))} (`{member.id}`)'
+            await self.send_log(member.guild, f'☎️ {escape_user(str(member))} (`{member.id}`)'
                                               f' joined **#{after.channel.name}**')
             if guild is not None and guild.get('afk_channel', 0) == after.channel.id:
                 return
