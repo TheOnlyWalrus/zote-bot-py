@@ -35,8 +35,9 @@ async def get_prefix(_bot, message):
 class ZoteBot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.db = DBConnection()
+        self.debug_mode = bool(int(os.getenv('DEBUG', '0')))
         self._watcher_mode = os.environ.get('WATCHER_MODE', '0') == '1'
+        self.db = DBConnection(self)
 
         logger = logging.getLogger(  # create logger
             'zote' if os.environ.get('DEBUG', "0") == "0"

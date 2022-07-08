@@ -53,9 +53,11 @@ class BaseDBConnection:
 
 
 class DBConnection(BaseDBConnection):
-    def __init__(self):
+    def __init__(self, bot):
         super().__init__('192.168.0.129', 'wynndb', 'zote')
+        self.bot = bot
         self.guild_cache = {}
+        self.schema_name = 'purple' if self.bot.debug_mode else 'zotebot'
 
     # Guilds
 
@@ -67,7 +69,7 @@ class DBConnection(BaseDBConnection):
             return e
 
         async with self.pool.acquire() as conn:
-            query = 'SELECT * FROM zotebot.guilds WHERE id = $1'
+            query = 'SELECT * FROM {}.guilds WHERE id = $1'.format(self.schema_name)
             res = await conn.fetchrow(query, guild_id)  # Fetch a guild row
 
         if res:  # if guild exists
@@ -96,10 +98,10 @@ class DBConnection(BaseDBConnection):
 
         async with self.pool.acquire() as conn:
             query = '''
-            UPDATE zotebot.guilds
+            UPDATE {}.guilds
                 SET {}
                 WHERE id = $1
-            '''.format(qry[:-2])  # Create update query from qry and remove trailing comma
+            '''.format(self.schema_name, qry[:-2])  # Create update query from qry and remove trailing comma
 
             await conn.execute(query, guild_id, *values)  # Update guild values
 
@@ -112,9 +114,9 @@ class DBConnection(BaseDBConnection):
 
         async with self.pool.acquire() as conn:
             query = '''
-            INSERT INTO zotebot.guilds (id)
+            INSERT INTO {}.guilds (id)
                 VALUES ($1)
-            '''
+            '''.format(self.schema_name)
 
             await conn.execute(
                 query, guild_id)  # Insert new guild
@@ -130,7 +132,7 @@ class DBConnection(BaseDBConnection):
         await self.connect()  # Connect to database
 
         async with self.pool.acquire() as conn:
-            query = 'SELECT * FROM zotebot.users WHERE id = $1'
+            query = 'SELECT * FROM {}.users WHERE id = $1'.format(self.schema_name)
 
             res = await conn.fetchrow(query, user_id)  # Fetch user row
 
@@ -159,10 +161,10 @@ class DBConnection(BaseDBConnection):
 
         async with self.pool.acquire() as conn:
             query = '''
-            UPDATE zotebot.users
+            UPDATE {}.users
                 SET {}
                 WHERE id = $1
-            '''.format(qry[:-2])  # Create update query from qry and remove trailing comma
+            '''.format(self.schema_name, qry[:-2])  # Create update query from qry and remove trailing comma
 
             await conn.execute(query, user_id, *values)  # Update user values
 
@@ -172,9 +174,9 @@ class DBConnection(BaseDBConnection):
 
         async with self.pool.acquire() as conn:
             query = '''
-            INSERT INTO zotebot.users
+            INSERT INTO {}.users
                 VALUES ($1)
-            '''
+            '''.format(self.schema_name)
 
             await conn.execute(
                 query, user_id)  # Insert new user
@@ -185,8 +187,8 @@ class DBConnection(BaseDBConnection):
 
         async with self.pool.acquire() as conn:
             query = '''
-                SELECT id, voice FROM zotebot.users
-            '''
+                SELECT id, voice FROM {}.users
+            '''.format(self.schema_name)
 
             res = await conn.fetch(query)  # Fetch all users
 
